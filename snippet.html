@@ -197,6 +197,7 @@ html.ff-on .product-list { display: block !important; }
         artistLine: cut > -1 ? title.slice(0, cut).trim() : '',
         workLine: cut > -1 ? title.slice(cut + 1).trim() : title,
         img: typeof r[2] === 'string' && SAFE_IMG.test(r[2]) ? IMG + r[2] : '',
+        hover: typeof r[8] === 'string' && SAFE_IMG.test(r[8]) ? IMG + r[8] : '',
         price: +r[3] || 0,
         sale: +r[4] || 0,
         sold: r[5] === 1,
@@ -416,13 +417,25 @@ html.ff-on .product-list { display: block !important; }
       var w = el('div', 'product-list-image-wrapper');
       var fig = el('figure', 'product-list-item-image');
       var gw = el('div', 'grid-image-wrapper');
-      if (it.img) {
-        var im = el('img', 'grid-item-image grid-image-cover');
+      function pic(url, cls) {
+        var im = el('img', 'grid-item-image ' + cls);
         im.loading = 'lazy'; im.decoding = 'async'; im.alt = it.title;
-        im.src = it.img + '?format=500w';
-        im.srcset = [300, 500, 750, 1000].map(function (s) { return it.img + '?format=' + s + 'w ' + s + 'w'; }).join(', ');
+        im.src = url + '?format=500w';
+        im.srcset = [300, 500, 750, 1000].map(function (s) { return url + '?format=' + s + 'w ' + s + 'w'; }).join(', ');
         im.sizes = '(max-width: 767px) 50vw, 25vw';
-        gw.appendChild(im);
+        return im;
+      }
+      if (it.img) gw.appendChild(pic(it.img, 'grid-image-cover'));
+      // Image au survol : chargée seulement quand la souris arrive sur la carte (rien sur mobile).
+      if (it.img && it.hover) {
+        c.addEventListener('pointerenter', function (e) {
+          if (e.pointerType !== 'mouse' || gw.querySelector('.grid-image-hover')) return;
+          var h = pic(it.hover, 'grid-image-hover');
+          h.loading = 'eager';
+          // Comme Squarespace : la vignette ne s'efface qu'une fois l'image de survol prête.
+          h.addEventListener('load', function () { h.classList.add('loaded'); gw.classList.add('has-hover-img'); });
+          gw.appendChild(h);
+        });
       }
       fig.appendChild(gw); w.appendChild(fig); a.appendChild(w);
       var meta = el('section', 'product-list-item-meta');

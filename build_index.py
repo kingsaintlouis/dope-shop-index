@@ -59,12 +59,17 @@ def price(it):
     return best.get("price") or 0, sale or 0
 
 
-def image(it):
-    for sub in it.get("items") or []:
-        u = sub.get("assetUrl") or ""
-        if u.startswith(IMG_PREFIX):
-            return u[len(IMG_PREFIX):]  # préfixe retiré pour alléger, remis côté navigateur
-    return ""
+def images(it):
+    """(vignette, image au survol) comme sur la grille Squarespace : la vignette est l'image
+    choisie pour le produit (assetUrl du produit) sinon la 1re de la galerie ; le survol est
+    la 2e image de la galerie. Préfixe CDN retiré pour alléger, remis côté navigateur."""
+    gallery = [s.get("assetUrl") or "" for s in it.get("items") or []]
+    gallery = [u for u in gallery if u.startswith(IMG_PREFIX)]
+    own = it.get("assetUrl") or ""
+    cover = own if own.startswith(IMG_PREFIX) else (gallery[0] if gallery else "")
+    hover = gallery[1] if len(gallery) > 1 else ""   # Squarespace prend la 2e image de la galerie
+    cut = lambda u: u[len(IMG_PREFIX):] if u else ""
+    return cut(cover), cut(hover)
 
 
 def main():
@@ -84,16 +89,18 @@ def main():
             continue
         seen.add(it["id"])
         p, s = price(it)
+        cover, hover = images(it)
         cids = it.get("categoryIds") or []
         rows.append([
             it["urlId"],                                   # 0 lien : /shop/p/<urlId>
             it["title"],                                   # 1 titre "Artiste | ŒUVRE"
-            image(it),                                     # 2 image principale
+            cover,                                         # 2 vignette
             p // 100,                                      # 3 prix USD
             s // 100,                                      # 4 prix soldé USD (0 = pas soldé)
             1 if sold_out(it) else 0,                      # 5 épuisé
             [k for k, c in enumerate(artist_cats) if c in cids],  # 6 index d'artistes
             [k for k, c in enumerate(type_cats) if c in cids],    # 7 index de types
+            hover,                                         # 8 image au survol ("" = aucune)
         ])
 
     out = {
