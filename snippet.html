@@ -1,5 +1,5 @@
 <!-- Dope! filtre rapide : debut -->
-<script>window.FF_CONFIG={indexUrl:'https://kingsaintlouis.github.io/dope-shop-index/shop-index.json'};</script>
+<script>window.FF_CONFIG={indexUrl:'https://kingsaintlouis.github.io/dope-shop-index/shop-index.json',live:true};</script>
 <style>
 /* Dope! Gallery — filtre rapide du shop */
 html.ff-on:not(.ff-ready) .product-list-layout-container { visibility: hidden; min-height: 80vh; }
@@ -134,6 +134,11 @@ html.ff-on .product-list { display: block !important; }
 
   // Mode test : actif seulement avec ?ff=1 dans l'adresse, sauf si CFG.live === true.
   var active = CFG.live === true || /[?&]ff=1\b/.test(location.search);
+  // Uniquement sur la liste du shop et ses catégories (/shop, /shop/prints, /shop/artists/kaws),
+  // jamais sur une fiche produit (/shop/p/...).
+  var path = location.pathname.replace(/\/+$/, '');
+  var m = /^\/shop(?:\/([a-z0-9-]+)(?:\/([a-z0-9-]+))?)?$/i.exec(path);
+  if (!m || (m[1] || '').toLowerCase() === 'p') active = false;
   if (!active || !INDEX_URL || !window.fetch) return;
   root.classList.add('ff-on');
 
@@ -212,8 +217,18 @@ html.ff-on .product-list { display: block !important; }
     var maxPrice = items.reduce(function (m, it) { return Math.max(m, it.sale || it.price); }, 0);
     maxPrice = Math.ceil(maxPrice / 100) * 100 || 100;
 
+    var artistSlugs = Array.isArray(d.artistSlugs) && d.artistSlugs.length === artistNames.length ? d.artistSlugs.map(String) : artistNames.map(slug);
+    var typeSlugs = Array.isArray(d.typeSlugs) && d.typeSlugs.length === typeNames.length ? d.typeSlugs.map(String) : typeNames.map(slug);
+    var artistsSlug = String(d.artistsSlug || 'artists');
+
     var st = { q: '', a: {}, t: {}, av: '', min: 0, max: maxPrice, sort: '', page: 1 };
     readHash();
+    // Page catégorie (/shop/prints, /shop/artists/kaws) : on pré-coche la catégorie.
+    if (m[1] && !keys(st.a).length && !keys(st.t).length) {
+      var c1 = m[1].toLowerCase(), c2 = (m[2] || '').toLowerCase();
+      if (c1 === artistsSlug && c2) { var ka = artistSlugs.indexOf(c2); if (ka > -1) st.a[ka] = 1; }
+      else if (!c2) { var kt = typeSlugs.indexOf(c1); if (kt > -1) st.t[kt] = 1; }
+    }
 
     // --- structure : barre latérale + grille ---
     var wrap = el('div', 'ff-wrap');
@@ -453,7 +468,7 @@ html.ff-on .product-list { display: block !important; }
       grid.appendChild(frag);
       if (!slice.length) grid.appendChild(el('p', 'ff-empty', 'No works match these filters.'));
 
-      count.textContent = 'items: ' + list.length + (list.length ? '  (' + (from + 1) + ' - ' + (from + slice.length) + ')' : '');
+      count.textContent = 'artworks: ' + list.length + (list.length ? '  (' + (from + 1) + ' - ' + (from + slice.length) + ')' : '');
       priceTxt.textContent = money(st.min) + ' – ' + money(st.max);
       lastFacets = facets();
       paintFacets(lastFacets);

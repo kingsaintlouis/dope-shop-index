@@ -76,6 +76,7 @@ def main():
     artists = next(c for c in tree if c["displayName"] == "Artists")
     artist_cats = {c["id"]: c["displayName"] for c in artists["children"]}
     type_cats = {c["id"]: c["displayName"] for c in tree if c["id"] != artists["id"]}
+    slugs = {c["id"]: c.get("shortSlug", "") for c in tree + artists["children"]}
 
     seen, rows = set(), []
     for it in raw:
@@ -100,6 +101,9 @@ def main():
         "built": int(time.time()),
         "artists": list(artist_cats.values()),
         "types": list(type_cats.values()),
+        "artistSlugs": [slugs[c] for c in artist_cats],   # /shop/artists/<slug>
+        "typeSlugs": [slugs[c] for c in type_cats],       # /shop/<slug>
+        "artistsSlug": artists.get("shortSlug", "artists"),
         "items": rows,
     }
     if len(rows) < 500:  # garde-fou : ne jamais publier un index tronqué
