@@ -1,0 +1,534 @@
+<!-- Dope! filtre rapide : debut -->
+<script>window.FF_CONFIG={indexUrl:'https://kingsaintlouis.github.io/dope-shop-index/shop-index.json'};</script>
+<style>
+/* Dope! Gallery — filtre rapide du shop */
+html.ff-on:not(.ff-ready) .product-list-layout-container { visibility: hidden; min-height: 80vh; }
+html.ff-on .product-list-filters,
+html.ff-on .product-list-filters-drawer-open-button,
+html.ff-on .product-list-filters-drawer-open-button-container,
+html.ff-on .nested-category-tree-wrapper,
+html.ff-on .nested-category-breadcrumb,
+html.ff-on .product-list-header,
+html.ff-on [class*="custom-filter"] .custom-filter-wrapper,
+html.ff-on .mobile-filter-trigger,
+html.ff-on .product-list-category-subnav-container,
+html.ff-on .product-list-category-select-container,
+html.ff-on .product-list-filters-container,
+html.ff-on .product-list-result-count-container,
+html.ff-on .product-list > .list-pagination { display: none !important; }
+html.ff-on .product-list { display: block !important; }
+/* les cartes sont dessinées par le filtre : pas d'animation d'entrée Squarespace */
+.ff-main .product-list-item { opacity: 1 !important; transform: none !important; }
+
+.ff-wrap { display: flex; gap: 48px; align-items: flex-start; }
+.ff-main { flex: 1; min-width: 0; }
+.ff-side {
+  flex: 0 0 200px; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
+  font-family: Avenir-Light, Avenir, "Helvetica Neue", Arial, sans-serif; font-size: 13px; color: #555;
+  padding: 0 4px 24px; scrollbar-width: thin;
+}
+.ff-count { font-family: Avenir-Bold, Avenir, "Helvetica Neue", Arial, sans-serif; color: #222; margin: 0 0 22px 12px; white-space: pre; }
+.ff-search, .ff-find, .ff-sort {
+  width: 100%; box-sizing: border-box; font: inherit; color: #222; background: transparent;
+  border: 0; border-bottom: 1px solid #222; border-radius: 0; padding: 10px 12px; margin: 0 0 14px;
+  -webkit-appearance: none; appearance: none;
+}
+.ff-find { border-bottom-color: #ccc; padding: 6px 12px; margin: 10px 0 6px; font-size: 12px; }
+.ff-sort { cursor: pointer; background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23222'/%3E%3C/svg%3E") no-repeat right 12px center; }
+.ff-search:focus, .ff-find:focus, .ff-sort:focus { outline: none; border-bottom-width: 2px; }
+.ff-group { border-bottom: 1px solid #222; margin: 0 0 6px; }
+.ff-group > summary {
+  list-style: none; cursor: pointer; padding: 22px 12px 12px; font-size: 15px; color: #111;
+}
+.ff-group > summary::-webkit-details-marker { display: none; }
+.ff-group > summary::after { content: "+"; float: right; color: #888; }
+.ff-group[open] > summary::after { content: "–"; }
+.ff-group[open] { border-bottom: 0; }
+.ff-group[open] > summary { border-bottom: 1px solid #222; margin-bottom: 10px; }
+.ff-options { max-height: 300px; overflow-y: auto; padding: 4px 0 18px; }
+.ff-opt { display: flex; align-items: center; gap: 8px; padding: 4px 12px; cursor: pointer; line-height: 1.35; }
+.ff-opt[hidden] { display: none; }
+.ff-opt input { margin: 0; accent-color: #111; flex: none; }
+.ff-opt .ff-name { flex: 1; min-width: 0; }
+.ff-opt .ff-n { color: #aaa; font-size: 11px; }
+.ff-opt:hover .ff-name, .ff-opt input:checked + .ff-name { color: #111; }
+.ff-opt input:checked + .ff-name { font-family: Avenir-Bold, Avenir, "Helvetica Neue", Arial, sans-serif; }
+
+.ff-range { position: relative; height: 28px; margin: 8px 12px 0; }
+.ff-range::before { content: ""; position: absolute; left: 0; right: 0; top: 13px; height: 2px; background: #ddd; }
+.ff-range input {
+  position: absolute; left: 0; width: 100%; top: 4px; margin: 0; background: none; pointer-events: none;
+  -webkit-appearance: none; appearance: none; height: 20px;
+}
+.ff-range input::-webkit-slider-thumb {
+  pointer-events: auto; -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+  background: #fff; border: 2px solid #111; cursor: pointer;
+}
+.ff-range input::-moz-range-thumb {
+  pointer-events: auto; width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 2px solid #111; cursor: pointer;
+}
+.ff-price-txt { margin: 6px 12px 0; color: #222; }
+.ff-clear { margin: 22px 12px 0; background: none; border: 0; padding: 0; font: inherit; text-decoration: underline; color: #555; cursor: pointer; }
+
+.ff-pager { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 40px 0 20px; }
+.ff-page {
+  min-width: 36px; height: 36px; border: 1px solid #ddd; background: #fff; color: #222; cursor: pointer;
+  font: 14px "Helvetica Neue", Arial, sans-serif;
+}
+.ff-page.ff-cur { border-color: #111; background: #111; color: #fff; }
+.ff-gap { align-self: center; color: #999; }
+.ff-empty { grid-column: 1 / -1; padding: 60px 0; text-align: center; color: #555; }
+.product-list-item.sold-out .grid-item-image { opacity: .55; }
+.product-mark.sold-out { color: #999; }
+
+.ff-open, .ff-close, .ff-done { display: none; }
+
+@media (max-width: 767px) {
+  .ff-wrap { display: block; }
+  .ff-open {
+    display: inline-block; margin: 0 0 24px; padding: 10px 14px; background: #fff; color: #111;
+    border: 1px solid #111; border-radius: 3px; font: 14px Avenir-Light, Avenir, "Helvetica Neue", Arial, sans-serif; cursor: pointer;
+  }
+  .ff-side {
+    position: fixed; z-index: 100000; inset: 0 auto 0 0; width: min(86vw, 340px); max-height: none; height: 100%;
+    background: #fff; box-shadow: 0 0 40px rgba(0,0,0,.25); padding: 56px 12px 40px;
+    transform: translateX(-105%); transition: transform .25s ease; font-size: 15px;
+  }
+  html.ff-panel .ff-side { transform: none; }
+  .ff-shade { position: fixed; inset: 0; z-index: 99999; background: rgba(0,0,0,.35); }
+  html.ff-panel body { overflow: hidden; }
+  .ff-close {
+    display: block; position: sticky; top: -46px; margin: -46px 0 10px auto; z-index: 2; width: 40px; height: 40px;
+    background: none; border: 0; font-size: 30px; line-height: 1; color: #111; cursor: pointer;
+  }
+  .ff-opt { padding: 8px 12px; }
+  .ff-done {
+    display: block; position: sticky; bottom: 0; z-index: 2; width: 100%; margin: 24px 0 0; padding: 14px;
+    background: #111; color: #fff; border: 0; font: 15px Avenir-Bold, Avenir, "Helvetica Neue", Arial, sans-serif; cursor: pointer;
+  }
+  .ff-options { max-height: 45vh; }
+}
+</style>
+<script>
+/* Dope! Gallery — filtre rapide du shop (remplace le plugin Custom Filter).
+ *
+ * Charge en UNE requête un index compact du catalogue (shop-index.json, préparé
+ * chaque jour par build_index.py) au lieu de 22 requêtes Squarespace.
+ *
+ * Sécurité :
+ *  - l'index ne contient que des données publiques ; il n'est jamais exécuté
+ *    comme du code, seulement lu comme des données ;
+ *  - tout texte est inséré avec textContent (pas d'injection HTML possible) ;
+ *  - les liens ne peuvent pointer que vers /shop/p/<slug> du site, et les images
+ *    que vers images.squarespace-cdn.com : un index falsifié ne pourrait ni
+ *    exécuter de script ni envoyer un client vers un autre site ;
+ *  - si l'index est absent, invalide ou lent, la page normale Squarespace reste.
+ */
+(function () {
+  'use strict';
+  var CFG = window.FF_CONFIG || {};
+  var INDEX_URL = CFG.indexUrl;
+  var PAGE_SIZE = CFG.pageSize || 40;
+  var IMG = 'https://images.squarespace-cdn.com/';
+  var root = document.documentElement;
+
+  // Mode test : actif seulement avec ?ff=1 dans l'adresse, sauf si CFG.live === true.
+  var active = CFG.live === true || /[?&]ff=1\b/.test(location.search);
+  if (!active || !INDEX_URL || !window.fetch) return;
+  root.classList.add('ff-on');
+
+  function giveUp() { root.classList.remove('ff-on'); root.classList.add('ff-off'); }
+  var timer = setTimeout(giveUp, CFG.timeoutMs || 8000);
+
+  var ctrl = window.AbortController ? new AbortController() : null;
+  var dataP = fetch(INDEX_URL, { credentials: 'omit', mode: 'cors', signal: ctrl && ctrl.signal })
+    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+
+  // Démarre dès que le HTML est lu (readyState "interactive"), sans attendre les gros
+  // scripts Squarespace différés qui retardent DOMContentLoaded.
+  function ready(fn) {
+    var done = false;
+    function go() { if (!done && document.readyState !== 'loading') { done = true; fn(); } }
+    go();
+    document.addEventListener('readystatechange', go);
+    document.addEventListener('DOMContentLoaded', go);
+  }
+
+  ready(function () {
+    var grid = document.querySelector('.product-list-layout-container');
+    if (!grid) { clearTimeout(timer); giveUp(); return; }
+    dataP.then(function (d) {
+      clearTimeout(timer);
+      if (root.classList.contains('ff-off')) return; // trop tard, la page normale est déjà affichée
+      start(grid, d);
+    }).catch(function () { clearTimeout(timer); giveUp(); });
+  });
+
+  // ---------- utilitaires ----------
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function norm(s) {
+    return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  }
+  function money(n) { return '$' + n.toLocaleString('en-US') + '.00'; }
+  function slug(s) { return norm(s).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+  var SAFE_SLUG = /^[a-z0-9][a-z0-9-]*(\/[a-z0-9][a-z0-9-]*)*$/i;
+  var SAFE_IMG = /^content\/v1\/[A-Za-z0-9._~\/%@+-]+$/;
+
+  function validate(d) {
+    if (!d || d.v !== 1 || !Array.isArray(d.items) || !Array.isArray(d.artists) || !Array.isArray(d.types)) throw new Error('index');
+    var out = [];
+    d.items.forEach(function (r, pos) {
+      if (!Array.isArray(r) || !SAFE_SLUG.test(r[0]) || typeof r[1] !== 'string') return;
+      var title = r[1], cut = title.indexOf('|');
+      out.push({
+        pos: pos,
+        href: '/shop/p/' + r[0],
+        title: title,
+        artistLine: cut > -1 ? title.slice(0, cut).trim() : '',
+        workLine: cut > -1 ? title.slice(cut + 1).trim() : title,
+        img: typeof r[2] === 'string' && SAFE_IMG.test(r[2]) ? IMG + r[2] : '',
+        price: +r[3] || 0,
+        sale: +r[4] || 0,
+        sold: r[5] === 1,
+        artists: (r[6] || []).filter(function (k) { return k >= 0 && k < d.artists.length; }),
+        types: (r[7] || []).filter(function (k) { return k >= 0 && k < d.types.length; }),
+        q: norm(title)
+      });
+    });
+    if (out.length < 100) throw new Error('index trop petit');
+    return out;
+  }
+
+  // ---------- application ----------
+  function start(grid, d) {
+    var items;
+    try { items = validate(d); } catch (e) { giveUp(); return; }
+    var artistNames = d.artists.map(String), typeNames = d.types.map(String);
+    var maxPrice = items.reduce(function (m, it) { return Math.max(m, it.sale || it.price); }, 0);
+    maxPrice = Math.ceil(maxPrice / 100) * 100 || 100;
+
+    var st = { q: '', a: {}, t: {}, av: '', min: 0, max: maxPrice, sort: '', page: 1 };
+    readHash();
+
+    // --- structure : barre latérale + grille ---
+    var wrap = el('div', 'ff-wrap');
+    grid.parentNode.insertBefore(wrap, grid);
+    var side = el('aside', 'ff-side');
+    side.setAttribute('aria-label', 'Filter');
+    wrap.appendChild(side);
+    var main = el('div', 'ff-main');
+    wrap.appendChild(main);
+    main.appendChild(grid);
+    var pager = el('nav', 'ff-pager');
+    pager.setAttribute('aria-label', 'Pages');
+    main.appendChild(pager);
+    var openBtn = el('button', 'ff-open', 'filter');
+    openBtn.type = 'button';
+    wrap.parentNode.insertBefore(openBtn, wrap);
+
+    var count = el('div', 'ff-count');
+    side.appendChild(count);
+    var closeBtn = el('button', 'ff-close', '×');
+    closeBtn.type = 'button';
+    closeBtn.setAttribute('aria-label', 'Close');
+    side.appendChild(closeBtn);
+
+    var search = el('input', 'ff-search');
+    search.type = 'search';
+    search.placeholder = 'search';
+    search.setAttribute('aria-label', 'Search');
+    search.value = st.q;
+    side.appendChild(search);
+
+    var sortSel = el('select', 'ff-sort');
+    sortSel.setAttribute('aria-label', 'Sort');
+    [['', 'sort: featured'], ['asc', 'price: $ - $$$'], ['desc', 'price: $$$ - $']].forEach(function (o) {
+      var op = el('option', null, o[1]); op.value = o[0]; sortSel.appendChild(op);
+    });
+    sortSel.value = st.sort;
+    side.appendChild(sortSel);
+
+    function group(title, open) {
+      var g = el('details', 'ff-group');
+      if (open) g.open = true;
+      g.appendChild(el('summary', null, title));
+      var body = el('div', 'ff-options');
+      g.appendChild(body);
+      side.appendChild(g);
+      return body;
+    }
+    var artBox = group('artists', true);
+    var artFind = el('input', 'ff-find');
+    artFind.type = 'search'; artFind.placeholder = 'find an artist'; artFind.setAttribute('aria-label', 'Find an artist');
+    artBox.parentNode.insertBefore(artFind, artBox);
+    var typeBox = group('type of works', true);
+    var availBox = group('availability', true);
+    var priceBox = group('price', true);
+
+    function checkbox(box, label, checked, onChange, radio) {
+      var l = el('label', 'ff-opt');
+      var i = el('input'); i.type = radio ? 'radio' : 'checkbox'; i.checked = checked;
+      if (radio) i.name = 'ff-avail';
+      i.addEventListener('change', onChange);
+      l.appendChild(i);
+      var name = el('span', 'ff-name', label); l.appendChild(name);
+      var c = el('span', 'ff-n'); l.appendChild(c);
+      box.appendChild(l);
+      return { row: l, input: i, n: c, label: norm(label) };
+    }
+    var artRows = artistNames.map(function (n, k) {
+      return checkbox(artBox, n, !!st.a[k], function (e) { toggle(st.a, k, e.target.checked); });
+    });
+    var typeRows = typeNames.map(function (n, k) {
+      return checkbox(typeBox, n, !!st.t[k], function (e) { toggle(st.t, k, e.target.checked); });
+    });
+    var availRows = [['', 'all'], ['sale', 'for sale'], ['sold', 'sold out']].map(function (o) {
+      return checkbox(availBox, o[1], st.av === o[0], function () { st.av = o[0]; st.page = 1; update(); }, true);
+    });
+
+    // curseur de prix à deux poignées
+    var range = el('div', 'ff-range');
+    var lo = el('input'), hi = el('input');
+    [lo, hi].forEach(function (r) {
+      r.type = 'range'; r.min = 0; r.max = maxPrice; r.step = 10; range.appendChild(r);
+    });
+    lo.setAttribute('aria-label', 'Minimum price'); hi.setAttribute('aria-label', 'Maximum price');
+    lo.value = st.min; hi.value = st.max;
+    var priceTxt = el('div', 'ff-price-txt');
+    priceBox.appendChild(range);
+    priceBox.appendChild(priceTxt);
+    function onRange() {
+      var a = +lo.value, b = +hi.value;
+      if (a > b) { if (this === lo) lo.value = a = b; else hi.value = b = a; }
+      st.min = a; st.max = b; st.page = 1; update();
+    }
+    lo.addEventListener('input', onRange); hi.addEventListener('input', onRange);
+
+    var doneBtn = el('button', 'ff-done');
+    doneBtn.type = 'button';
+    side.appendChild(doneBtn);
+
+    var clearBtn = el('button', 'ff-clear', 'clear all');
+    clearBtn.type = 'button';
+    side.appendChild(clearBtn);
+    clearBtn.addEventListener('click', function () {
+      st = { q: '', a: {}, t: {}, av: '', min: 0, max: maxPrice, sort: '', page: 1 };
+      search.value = ''; sortSel.value = ''; lo.value = 0; hi.value = maxPrice; artFind.value = '';
+      artRows.concat(typeRows).forEach(function (r) { r.input.checked = false; });
+      availRows[0].input.checked = true;
+      update();
+    });
+
+    function toggle(map, k, on) { if (on) map[k] = 1; else delete map[k]; st.page = 1; update(); }
+
+    var qTimer;
+    search.addEventListener('input', function () {
+      clearTimeout(qTimer);
+      qTimer = setTimeout(function () { st.q = search.value; st.page = 1; update(); }, 120);
+    });
+    sortSel.addEventListener('change', function () { st.sort = sortSel.value; st.page = 1; update(); });
+    artFind.addEventListener('input', function () { paintFacets(lastFacets); });
+
+    // Sur mobile le panneau est déplacé sous <body> pour passer au-dessus de l'en-tête du site.
+    var shade = el('div', 'ff-shade');
+    function openPanel() {
+      document.body.appendChild(shade);
+      document.body.appendChild(side);
+      side.getBoundingClientRect();
+      root.classList.add('ff-panel');
+    }
+    function closePanel() {
+      root.classList.remove('ff-panel');
+      setTimeout(function () {
+        if (!root.classList.contains('ff-panel')) {
+          wrap.insertBefore(side, main);
+          if (shade.parentNode) shade.parentNode.removeChild(shade);
+        }
+      }, 260);
+    }
+    openBtn.addEventListener('click', openPanel);
+    closeBtn.addEventListener('click', closePanel);
+    shade.addEventListener('click', closePanel);
+    doneBtn.addEventListener('click', closePanel);
+
+    // --- filtrage ---
+    function keys(m) { return Object.keys(m).map(Number); }
+    function matches(it, skip) {
+      if (st.q) {
+        var words = norm(st.q).split(/\s+/).filter(Boolean);
+        for (var i = 0; i < words.length; i++) if (it.q.indexOf(words[i]) < 0) return false;
+      }
+      var p = it.sale || it.price;
+      if (p < st.min || p > st.max) return false;
+      if (skip !== 'av' && st.av === 'sale' && it.sold) return false;
+      if (skip !== 'av' && st.av === 'sold' && !it.sold) return false;
+      var a = keys(st.a), t = keys(st.t);
+      if (skip !== 'a' && a.length && !it.artists.some(function (k) { return st.a[k]; })) return false;
+      if (skip !== 't' && t.length && !it.types.some(function (k) { return st.t[k]; })) return false;
+      return true;
+    }
+
+    var lastFacets;
+    function facets() {
+      var fa = artistNames.map(function () { return 0; }), ft = typeNames.map(function () { return 0; }), fv = [0, 0, 0];
+      items.forEach(function (it) {
+        if (matches(it, 'a')) it.artists.forEach(function (k) { fa[k]++; });
+        if (matches(it, 't')) it.types.forEach(function (k) { ft[k]++; });
+        if (matches(it, 'av')) { fv[0]++; fv[it.sold ? 2 : 1]++; }
+      });
+      return { a: fa, t: ft, v: fv };
+    }
+    function paintFacets(f) {
+      var find = norm(artFind.value.trim());
+      artRows.forEach(function (r, k) {
+        r.n.textContent = f.a[k];
+        r.row.hidden = (!f.a[k] && !st.a[k]) || (find && r.label.indexOf(find) < 0);
+      });
+      typeRows.forEach(function (r, k) { r.n.textContent = f.t[k]; r.row.hidden = !f.t[k] && !st.t[k]; });
+      availRows.forEach(function (r, k) { r.n.textContent = f.v[k]; });
+    }
+
+    function card(it) {
+      var c = el('div', 'product-list-item' + (it.sale ? ' on-sale' : '') + (it.sold ? ' sold-out' : ''));
+      var a = el('a', 'product-list-item-link');
+      a.href = it.href;
+      a.setAttribute('aria-label', it.title);
+      var w = el('div', 'product-list-image-wrapper');
+      var fig = el('figure', 'product-list-item-image');
+      var gw = el('div', 'grid-image-wrapper');
+      if (it.img) {
+        var im = el('img', 'grid-item-image grid-image-cover');
+        im.loading = 'lazy'; im.decoding = 'async'; im.alt = it.title;
+        im.src = it.img + '?format=500w';
+        im.srcset = [300, 500, 750, 1000].map(function (s) { return it.img + '?format=' + s + 'w ' + s + 'w'; }).join(', ');
+        im.sizes = '(max-width: 767px) 50vw, 25vw';
+        gw.appendChild(im);
+      }
+      fig.appendChild(gw); w.appendChild(fig); a.appendChild(w);
+      var meta = el('section', 'product-list-item-meta');
+      var tp = el('div', 'product-list-title-price');
+      var t = el('div', 'product-list-item-title');
+      if (it.artistLine) { t.appendChild(document.createTextNode(it.artistLine)); t.appendChild(el('br')); }
+      t.appendChild(document.createTextNode(it.workLine));
+      tp.appendChild(t);
+      var pr = el('div', 'product-list-item-price');
+      if (it.sale) {
+        pr.appendChild(el('span', 'sale-price', money(it.sale) + ' '));
+        pr.appendChild(el('span', 'original-price', money(it.price)));
+      } else if (it.price) {
+        pr.textContent = money(it.price);
+      }
+      tp.appendChild(pr);
+      meta.appendChild(tp);
+      var status = el('div', 'product-list-item-status');
+      if (it.sold || it.sale) {
+        var gs = el('div', 'grid-meta-status');
+        gs.appendChild(el('span', 'product-mark ' + (it.sold ? 'sold-out' : 'sale'), it.sold ? 'Sold Out' : 'Sale'));
+        status.appendChild(gs);
+      }
+      meta.appendChild(status);
+      a.appendChild(meta);
+      c.appendChild(a);
+      return c;
+    }
+
+    function update(fromHash) {
+      var list = items.filter(function (it) { return matches(it); });
+      if (st.sort) {
+        var dir = st.sort === 'asc' ? 1 : -1;
+        list.sort(function (x, y) { return dir * ((x.sale || x.price) - (y.sale || y.price)) || x.pos - y.pos; });
+      }
+      var pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+      if (st.page > pages) st.page = pages;
+      var from = (st.page - 1) * PAGE_SIZE, slice = list.slice(from, from + PAGE_SIZE);
+
+      var frag = document.createDocumentFragment();
+      slice.forEach(function (it) { frag.appendChild(card(it)); });
+      grid.textContent = '';
+      grid.appendChild(frag);
+      if (!slice.length) grid.appendChild(el('p', 'ff-empty', 'No works match these filters.'));
+
+      count.textContent = 'items: ' + list.length + (list.length ? '  (' + (from + 1) + ' - ' + (from + slice.length) + ')' : '');
+      priceTxt.textContent = money(st.min) + ' – ' + money(st.max);
+      lastFacets = facets();
+      paintFacets(lastFacets);
+      paintPager(pages);
+      openBtn.textContent = 'filter' + (activeCount() ? ' (' + activeCount() + ')' : '');
+      doneBtn.textContent = 'show ' + list.length + (list.length === 1 ? ' work' : ' works');
+      if (!fromHash) writeHash();
+    }
+
+    function activeCount() {
+      return keys(st.a).length + keys(st.t).length + (st.av ? 1 : 0) + (st.q ? 1 : 0) + (st.min > 0 || st.max < maxPrice ? 1 : 0);
+    }
+
+    function paintPager(pages) {
+      pager.textContent = '';
+      if (pages < 2) return;
+      function btn(label, p, cur) {
+        var b = el('button', 'ff-page' + (cur ? ' ff-cur' : ''), label);
+        b.type = 'button';
+        if (cur) b.setAttribute('aria-current', 'page');
+        b.addEventListener('click', function () {
+          st.page = p; update();
+          var top = main.getBoundingClientRect().top + window.pageYOffset - 120;
+          window.scrollTo({ top: top, behavior: 'smooth' });
+        });
+        pager.appendChild(b);
+      }
+      if (st.page > 1) btn('‹', st.page - 1);
+      var shown = {};
+      [1, st.page - 2, st.page - 1, st.page, st.page + 1, st.page + 2, pages].forEach(function (p) {
+        if (p >= 1 && p <= pages) shown[p] = 1;
+      });
+      var prev = 0;
+      keys(shown).sort(function (a, b) { return a - b; }).forEach(function (p) {
+        if (prev && p > prev + 1) pager.appendChild(el('span', 'ff-gap', '…'));
+        btn(String(p), p, p === st.page); prev = p;
+      });
+      if (st.page < pages) btn('›', st.page + 1);
+    }
+
+    // --- état dans l'adresse (#...), pour que le bouton retour garde les filtres ---
+    function writeHash() {
+      var p = new URLSearchParams();
+      if (st.q) p.set('q', st.q);
+      var a = keys(st.a).map(function (k) { return slug(artistNames[k]); });
+      if (a.length) p.set('artist', a.join(','));
+      var t = keys(st.t).map(function (k) { return slug(typeNames[k]); });
+      if (t.length) p.set('type', t.join(','));
+      if (st.av) p.set('avail', st.av);
+      if (st.min > 0) p.set('min', st.min);
+      if (st.max < maxPrice) p.set('max', st.max);
+      if (st.sort) p.set('sort', st.sort);
+      if (st.page > 1) p.set('page', st.page);
+      var h = p.toString();
+      history.replaceState(null, '', location.pathname + location.search + (h ? '#' + h : ''));
+    }
+    function readHash() {
+      var p = new URLSearchParams(location.hash.slice(1));
+      st.q = p.get('q') || '';
+      (p.get('artist') || '').split(',').forEach(function (s) {
+        var k = artistNames.map(slug).indexOf(s); if (k > -1) st.a[k] = 1;
+      });
+      (p.get('type') || '').split(',').forEach(function (s) {
+        var k = typeNames.map(slug).indexOf(s); if (k > -1) st.t[k] = 1;
+      });
+      st.av = { sale: 'sale', sold: 'sold' }[p.get('avail')] || '';
+      st.min = Math.max(0, +p.get('min') || 0);
+      st.max = Math.min(maxPrice, +p.get('max') || maxPrice);
+      st.sort = { asc: 'asc', desc: 'desc' }[p.get('sort')] || '';
+      st.page = Math.max(1, parseInt(p.get('page'), 10) || 1);
+    }
+
+    root.classList.add('ff-ready');
+    update(true);
+  }
+})();
+</script>
+<!-- Dope! filtre rapide : fin -->
