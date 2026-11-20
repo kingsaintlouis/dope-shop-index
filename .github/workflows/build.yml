@@ -17,7 +17,7 @@ jobs:
       id-token: write
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      url: ${{ steps.deploy.outputs.page_url || steps.deploy_retry.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -28,7 +28,15 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
+      # La publication échoue parfois côté GitHub ("No artifacts named github-pages were found") :
+      # on réessaie une fois après 60 s. Le run (et l'e-mail d'échec) n'échoue que si les 2 essais ratent.
       - id: deploy
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+      - if: steps.deploy.outcome == 'failure'
+        run: sleep 60
+      - id: deploy_retry
+        if: steps.deploy.outcome == 'failure'
         uses: actions/deploy-pages@v4
 
   # GitHub désactive les tâches programmées d'un dépôt public sans activité depuis 60 jours.
